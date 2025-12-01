@@ -7,48 +7,71 @@
 ---
 
 ## **Overview**
-High traffic causes database response times to increase dramatically (from ~50 ms to over 2 seconds).  
-This project uses **Amazon ElastiCache (Redis)** to cache frequently accessed queries, reducing database load by **60–80%** and returning cached results in **under 10 ms**.
+High traffic causes database response times to increase dramatically (for example, from ~50 ms to over 2 seconds).  
+This project implements **Amazon ElastiCache (Redis)** as a query caching layer to reduce repeated reads on the database.
+
+By caching frequently accessed data, the system achieves:
+- **60–80% reduction in database load**
+- **Sub-10 ms response times** for cached queries
+- **More stable performance during traffic spikes**
 
 ---
 
 ## **Problem**
-E-commerce applications repeatedly query product catalog data, user sessions, and shopping cart details.  
-These repeated requests overload the primary database, and traditional optimizations such as indexing and read replicas become insufficient as traffic scales.
+E-commerce systems frequently fetch product catalog data, shopping cart details, and user session information.  
+When thousands of users request the same data repeatedly:
+
+- The relational database becomes a bottleneck  
+- Latency spikes under load  
+- Read replicas and indexes become insufficient  
+- User experience degrades as APIs slow down  
+
+A caching layer is required to eliminate redundant reads and increase scalability.
 
 ---
 
 ## **Solution**
-A **Redis cache-aside layer** with TTL expiration is implemented to improve performance:
+We implemented a **Redis cache-aside architecture** using Amazon ElastiCache.
 
+### Key Benefits
 - Sub-10 ms cached responses  
-- 60–80% reduction in database load  
+- Automatic TTL expiration  
+- Database queried only on cache misses  
 - Seamless integration with Amazon RDS  
-- Scalable and fault-tolerant design using Amazon ElastiCache  
+- Scales easily as traffic increases  
+
+### Cache-Aside Workflow
+1. Application checks Redis for the requested key.  
+2. **Cache Hit →** Return result immediately.  
+3. **Cache Miss →** Query RDS → Store result in Redis → Return response.  
+4. TTL ensures outdated values refresh automatically.
 
 ---
 
-
-## **Technologies**
-- **Amazon ElastiCache (Redis)**
-- **Amazon RDS**
-- **Amazon EC2**
-- **AWS VPC**
-- **AWS CLI v2 / CloudShell**
-
----
-
-## **Setup**
-1. Create an Amazon RDS instance and note the endpoint + credentials.  
-2. Deploy an ElastiCache Redis cluster in private subnets.  
-3. Configure your EC2 application with environment variables:  
-   - `DB_HOST`, `DB_USER`, `DB_PASSWORD`  
-   - `REDIS_HOST`, `REDIS_PORT`, `CACHE_TTL`  
-4. Start the application using:  
-   - `npm start`  
-   - or `python app.py`
+## **Technologies Used**
+- **Amazon ElastiCache (Redis)** — Cache layer  
+- **Amazon RDS** — Primary database  
+- **Amazon EC2** — Backend hosting  
+- **AWS VPC** — Networking, routing, and security  
+- **AWS CLI v2 / CloudShell** — Deployment and management  
 
 ---
+
+## **Setup Instructions**
+
+### 1. Create an Amazon RDS Instance
+- Take note of DB endpoint & credentials  
+- Ensure RDS is in private subnets (recommended)
+
+### 2. Deploy an ElastiCache Redis Cluster
+- Place Redis in private subnets  
+- Allow incoming traffic only from EC2 Security Group  
+- Default port: **6379**
+
+### 3. Launch an EC2 Instance
+Install dependencies and configure environment variables:
+
+
 
 ## **How It Works**
 1. Application checks Redis for cached data.  
@@ -74,6 +97,7 @@ A **Redis cache-aside layer** with TTL expiration is implemented to improve perf
 
 ## **Estimated Cost**
 Estimated AWS test environment cost: **$50–$100/month** using t3.micro instances.
+
 
 
 
